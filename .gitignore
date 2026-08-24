@@ -31,6 +31,10 @@ venv/
 *.log
 /tmp-artifacts/
 
+# Local run history archive (append-only summary.json log for `just fh-history`) —
+# machine-local cost/usage data, not something to commit.
+/.fh-history/
+
 # Local parking lot for unused assets and scratch files — never committed.
 /tmp/
 

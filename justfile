@@ -38,3 +38,8 @@ fusion *ARGS:
 # 5-slot fusion stack: fusion trio + fire=Kimi K3 + hawk=DeepSeek V4 Flash (both Fireworks)
 fusion5 *ARGS:
     just fh-stack .pi/fusion-harness/model-stack-fusion-5.yaml {{ARGS}}
+
+# Run history / cost report — reads .fh-history/, archived (full prompt + answers) on every fh-* run.
+# Flags: --all, --limit N, --command <name>, --verbose (tokens/tps/model), --prune-older-than DAYS.
+fh-history *ARGS:
+    node extensions/fusion-harness/scripts/fh-history.js {{ARGS}}

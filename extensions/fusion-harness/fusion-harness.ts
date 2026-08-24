@@ -918,7 +918,32 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	const mkArtifacts = async (): Promise<string> => fs.promises.mkdtemp(path.join(ARTIFACT_ROOT, "fusion-harness-"));
-	const save = (dir: string, name: string, body: string) => fs.promises.writeFile(path.join(dir, name), body, "utf-8");
+
+	// Every run's summary.json also lands here, append-only, so /fh-history has something
+	// to read after /tmp is cleared on reboot. Rooted at the harness process's own cwd
+	// (not ctx.cwd) — this is THIS repo's history, not a per-target-project artifact.
+	const HISTORY_DIR = path.join(process.cwd(), ".fh-history");
+	const HISTORY_FILE = path.join(HISTORY_DIR, "runs.jsonl");
+	// By the time this fires, summary.json is the LAST file every command writes for a run —
+	// prompt.md, stack.json, and every agents/<slot>/answer.md are already on disk in `dir` —
+	// so a straight recursive copy captures the full run, not just its cost/token metadata.
+	const archiveRun = async (dir: string, payload: Record<string, unknown>) => {
+		try {
+			await fs.promises.mkdir(HISTORY_DIR, { recursive: true });
+			const record = { ts: new Date().toISOString(), artifactsDir: dir, ...payload };
+			await fs.promises.appendFile(HISTORY_FILE, `${JSON.stringify(record)}\n`, "utf8");
+			await fs.promises.cp(dir, path.join(HISTORY_DIR, path.basename(dir)), { recursive: true });
+		} catch (error) {
+			process.stderr.write(`fusion-harness: FAILED to archive run history: ${String(error)}\n`);
+		}
+	};
+
+	const save = async (dir: string, name: string, body: string) => {
+		await fs.promises.writeFile(path.join(dir, name), body, "utf-8");
+		if (name === "summary.json") {
+			try { await archiveRun(dir, JSON.parse(body)); } catch {}
+		}
+	};
 	const ensureSummary = async (dir: string, payload: Record<string, unknown>) => {
 		const summaryPath = path.join(dir, "summary.json");
 		try {
@@ -927,6 +952,7 @@ export default function (pi: ExtensionAPI) {
 		} catch {}
 		try {
 			await fs.promises.writeFile(summaryPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+			await archiveRun(dir, payload);
 		} catch (error) {
 			process.stderr.write(`fusion-harness: FAILED to write required summary ${summaryPath}: ${String(error)}\n`);
 		}
