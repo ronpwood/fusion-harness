@@ -19,7 +19,7 @@ Install everything the 2–5 model fusion-harness needs and verify both legacy a
    - Exported shell variables override justfile dotenv values.
 4. Confirm these load paths exist:
    - `extensions/fusion-harness/fusion-harness.ts`
-   - `extensions/fusion-harness/modules/{runtime,child-runner,prompt-library,tui,cmd-readonly,cmd-fusion,cmd-build,model-stack,agent-layout,collaboration-graph,writer-lease}.ts`
+   - `extensions/fusion-harness/modules/{runtime,child-runner,prompt-library,tui,cmd-readonly,cmd-redteam,cmd-fusion,cmd-build,model-stack,agent-layout,collaboration-graph,writer-lease}.ts`
    - `extensions/fusion-harness/prompts/{SYSTEM,USER}_PROMPT_*.md`
    - `.pi/fusion-harness/model-stack-{fusion,fusion-5,trio,openrouter}.yaml`
 5. Run `npm test` (34 deterministic tests), `git diff --check`, and `pi -e extensions/fusion-harness/fusion-harness.ts --list-models`.

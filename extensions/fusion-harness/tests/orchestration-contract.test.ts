@@ -25,12 +25,23 @@ describe("orchestration contracts", () => {
   });
 
   test("registers target commands and deletes unsafe/obsolete commands", () => {
-    for (const command of ["fh", "fh-model", "fh-only", "fh-opinion", "fh-fusion", "fh-debate", "fh-collaborate", "fh-auto-validate", "fh-system-prompt", "fh-reset"]) {
+    for (const command of ["fh", "fh-model", "fh-only", "fh-opinion", "fh-fusion", "fh-debate", "fh-redteam", "fh-collaborate", "fh-auto-validate", "fh-system-prompt", "fh-reset"]) {
       expect(source).toContain(`registerCommand("${command}"`);
     }
     expect(source).not.toContain('registerCommand("fh-both"');
     expect(source).not.toContain('registerCommand("fh-thinking"');
     expect(source).not.toContain('registerCommand("fh-fusion-only"');
+  });
+
+  test("redteam assigns one fixed lens per slot, strictly read-only, and never shells out from a child", () => {
+    const redteam = readFileSync(join(root, "modules", "cmd-redteam.ts"), "utf8");
+    expect(redteam).toContain("assignRedteamLenses(orderedSlots(stack))");
+    expect(redteam).toContain("tools: READONLY_TOOLS");
+    expect(redteam).not.toContain("FULL_TOOLS");
+    expect(redteam).toContain('execFileSync("git", ["diff", "HEAD"]');
+    expect(redteam).toContain('stdio: ["ignore", "pipe", "pipe"]');
+    expect(prompt("USER_PROMPT_REDTEAM.md")).toContain("READ-ONLY CONTRACT");
+    expect(prompt("USER_PROMPT_REDTEAM.md")).toContain("{{LENS_LABEL}}");
   });
 
   test("fusion has read-only sources, one full-tool fuser, and no-tools ACKs", () => {

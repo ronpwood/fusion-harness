@@ -8,6 +8,7 @@
  * Commands:
  *   /fh-opinion      N independent read-only opinions            (modules/cmd-readonly.ts)
  *   /fh-debate       N-way all-to-all debate, no judge           (modules/cmd-readonly.ts)
+ *   /fh-redteam      N read-only agents, N fixed lenses, no merge (modules/cmd-redteam.ts)
  *   /fh-fusion       N sources → sole-writer FUSION → ACKs       (modules/cmd-fusion.ts)
  *   /fh-collaborate  plans → architect DAG → readiness execution (modules/cmd-build.ts)
  *   /fh-auto-validate architect + Main gate-first build loop     (modules/cmd-build.ts)
@@ -48,6 +49,7 @@ import { Container, Text, matchesKey, truncateToWidth, visibleWidth } from "@ear
 import { registerAutoValidateCommand, registerCollaborateCommand } from "./modules/cmd-build.ts";
 import { registerFusionCommand } from "./modules/cmd-fusion.ts";
 import { registerReadonlyCommands } from "./modules/cmd-readonly.ts";
+import { registerRedteamCommand } from "./modules/cmd-redteam.ts";
 import { piInvocation, runChild } from "./modules/child-runner.ts";
 import {
 	cloneStack,
@@ -1310,6 +1312,7 @@ export default function (pi: ExtensionAPI) {
 		totals,
 	};
 	registerReadonlyCommands(pi, deps); // /fh-opinion + /fh-debate
+	registerRedteamCommand(pi, deps); // /fh-redteam
 	registerFusionCommand(pi, deps); // /fh-fusion
 	registerCollaborateCommand(pi, deps); // /fh-collaborate
 	registerAutoValidateCommand(pi, deps); // /fh-auto-validate

@@ -261,6 +261,63 @@ export function debateClosingPrompt(slot: ModelSlot, prompt: string, round: numb
 	});
 }
 
+// ═══ Red team ════════════════════════════════════════════════════════════════
+
+/** One fixed lens `/fh-redteam` assigns to a slot — content lives here, not in cmd-redteam.ts. */
+export interface RedteamLens {
+	key: string;
+	label: string;
+	guidance: string;
+}
+
+// Ordered so a 2-5 slot stack always gets the most load-bearing lenses first: a 3-slot
+// trio lands exactly on correctness/security/performance, the classic red-team triad.
+export const REDTEAM_LENSES: RedteamLens[] = [
+	{
+		key: "correctness",
+		label: "CORRECTNESS",
+		guidance: "Find inputs, states, or edge cases that produce a wrong result, a crash, or silent data loss. Cite the exact file:line and the concrete failure scenario — not a style preference.",
+	},
+	{
+		key: "security",
+		label: "SECURITY",
+		guidance: "Find exploitable weaknesses — injection, auth/authz bypass, secret exposure, unsafe deserialization, SSRF, path traversal. Cite the exact file:line and a concrete attack an adversary could run.",
+	},
+	{
+		key: "performance",
+		label: "PERFORMANCE",
+		guidance: "Find operations that scale badly, block on a hot path, or do redundant/unbounded work. Cite the exact file:line and the workload or input size that triggers it.",
+	},
+	{
+		key: "maintainability",
+		label: "MAINTAINABILITY",
+		guidance: "Find code that will mislead or trap the next person to touch it — misleading names, hidden coupling, dead code, an undocumented invariant. Cite the exact file:line.",
+	},
+	{
+		key: "test-coverage",
+		label: "TEST COVERAGE",
+		guidance: "Find behavior this change relies on that no test protects — an untested branch, an untested failure path, an assumption a future refactor could silently break. Cite the exact gap.",
+	},
+];
+
+/** Assign each ordered slot the next lens, cycling if a stack somehow exceeds the lens list. */
+export function assignRedteamLenses(slots: ModelSlot[]): Array<{ slot: ModelSlot; lens: RedteamLens }> {
+	return slots.map((slot, index) => ({ slot, lens: REDTEAM_LENSES[index % REDTEAM_LENSES.length] }));
+}
+
+/** /fh-redteam: every slot inspects the SAME target, read-only, through one fixed lens; no merge. */
+export function redteamPrompt(slot: ModelSlot, stack: ModelStack, lens: RedteamLens, targetLabel: string, target: string): string {
+	return fill("USER_PROMPT_REDTEAM.md", {
+		SLOT_NAME: slot.name,
+		MODEL: slot.model,
+		ROSTER: rosterText(stack),
+		LENS_LABEL: lens.label,
+		LENS_GUIDANCE: lens.guidance,
+		TARGET_LABEL: targetLabel,
+		TARGET: target,
+	});
+}
+
 // ═══ Collaboration ═══════════════════════════════════════════════════════════
 
 export function collabProposePrompt(slot: ModelSlot, stack: ModelStack, prompt: string): string {

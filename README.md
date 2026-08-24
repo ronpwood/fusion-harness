@@ -132,6 +132,7 @@ No config auto-discovery occurs; `--fh-config` is explicit.
 | `/fh-opinion <prompt>` | Every configured model answers independently with strict read-only tools. |
 | `/fh-fusion "<prompt>" "<instruction>"` | Every slot researches read-only; one fresh temporary FUSION agent is the sole CWD writer; then the complete fused result is synchronized to every model with exact ACK evidence. |
 | `/fh-debate [--rounds N] <prompt>` | N-way read-only debate. Each round every surviving agent receives every other agent's clearly labeled prior opinion, may pick/change sides, and closes without a judge. |
+| `/fh-redteam [target]` | Every configured agent inspects the SAME target read-only through one fixed lens (correctness/security/performance/maintainability/test-coverage, assigned in slot order). No target given → the current uncommitted diff (`git diff HEAD`). No judge, no merge — three (or more) distinct points of view in one run. |
 | `/fh-collaborate <prompt>` | Every agent plans read-only, the architect merges the plans into one validated delegation DAG, then tasks execute the moment their dependencies clear — parallel where the DAG allows, sequential paths where it doesn't, exactly one shared-CWD writer at a time — closed by a final architect integration turn. Proposals, the task breakdown, and every task report render as panels; a live task board runs below the editor. |
 | `/fh-only [slot] [prompt]` | Address one slot directly. Without a prompt it arms the next plain input as a one-send route; selecting the armed slot again disarms it. |
 | `/fh-model` | Three-step picker: slot → model → thinking. Session-only; never rewrites YAML. Main applies both `pi.setModel()` and `pi.setThinkingLevel()` to raw chat. |
@@ -151,7 +152,7 @@ No config auto-discovery occurs; `--fh-config` is explicit.
 
 Agents must never overwrite each other's work.
 
-- `/fh-opinion` and `/fh-debate`: all agents are read-only (`read,grep,find,ls`).
+- `/fh-opinion`, `/fh-debate`, and `/fh-redteam`: all agents are read-only (`read,grep,find,ls`).
 - `/fh-fusion`: all source workers are read-only. Their answers are captured under the run's `/tmp/fusion-harness-*` directory. Only the temporary FUSION agent gets full tools and may modify the CWD.
 - `/fh-collaborate`: planning and delegation are tool-enforced read-only; the harness persists the architect's plan JSON. Execution is dependency-driven — read tasks overlap freely, but every write-enabled task waits for the single global writer token, so `maxConcurrentWriteEnabledChildren` is always 1. Worktree commands are observed and fail the run.
 - `/fh-only` and `/fh-auto-validate` have one active writer by design.
@@ -256,6 +257,7 @@ extensions/fusion-harness/
 │   ├── prompt-library.ts      # every model contract, built from prompts/*.md templates
 │   ├── tui.ts                 # TwoCol/AgentGrid/FullWidth, labels, live columns, panel renderer
 │   ├── cmd-readonly.ts        # /fh-opinion + /fh-debate
+│   ├── cmd-redteam.ts         # /fh-redteam
 │   ├── cmd-fusion.ts          # /fh-fusion
 │   ├── cmd-build.ts           # /fh-collaborate + /fh-auto-validate (writer-lease holders)
 │   ├── model-stack.ts         # YAML parsing, validation, colors, legacy synthesis
@@ -272,6 +274,7 @@ extensions/fusion-harness/
 - `modules/prompt-library.ts` — every model contract, built from `prompts/SYSTEM_PROMPT_*.md` / `prompts/USER_PROMPT_*.md` templates, plus strict-output parsing.
 - `modules/tui.ts` — TwoCol/AgentGrid/FullWidth layout primitives, labels, live streaming columns, and the transcript panel renderer.
 - `modules/cmd-readonly.ts` — `/fh-opinion` and `/fh-debate`.
+- `modules/cmd-redteam.ts` — `/fh-redteam`.
 - `modules/cmd-fusion.ts` — `/fh-fusion`.
 - `modules/cmd-build.ts` — `/fh-collaborate` and `/fh-auto-validate` (the writer-lease holders).
 - `modules/model-stack.ts` — real YAML parsing, validation, colors, and legacy synthesis.
