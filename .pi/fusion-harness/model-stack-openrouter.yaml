@@ -1,0 +1,26 @@
+# The OpenRouter stack — one native provider plus two OpenRouter-only frontier
+# models the other stacks can't reach (Grok, GLM).
+# helm: Fable 5 architect (native Anthropic) · grok: Grok 4.6 primary/Main (OpenRouter) · glm: GLM 5.3 (OpenRouter)
+# Every slot appends the shared communication contract (path relative to this YAML).
+- name: helm
+  model: anthropic/claude-fable-5
+  thinking: medium
+  architect: true
+  color: "#A78BFA"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md
+
+- name: grok
+  model: openrouter/x-ai/grok-4.6
+  thinking: medium
+  primary: true
+  color: "#F59E0B"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md
+
+- name: glm
+  model: openrouter/z-ai/glm-5.3
+  thinking: medium
+  color: "#22D3EE"
+  append_system_prompt:
+    - ../../system_prompt_fixing_opus_5_great_communication.md

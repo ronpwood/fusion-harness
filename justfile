@@ -39,6 +39,10 @@ fusion *ARGS:
 fusion5 *ARGS:
     just fh-stack .pi/fusion-harness/model-stack-fusion-5.yaml {{ARGS}}
 
+# OpenRouter stack: helm=Fable 5 architect (native) + grok=Grok 4.6 Main + glm=GLM 5.3 (both via OpenRouter)
+openrouter *ARGS:
+    just fh-stack .pi/fusion-harness/model-stack-openrouter.yaml {{ARGS}}
+
 # Run history / cost report — reads .fh-history/, archived (full prompt + answers) on every fh-* run.
 # Flags: --all, --limit N, --command <name>, --verbose (tokens/tps/model), --prune-older-than DAYS.
 fh-history *ARGS:

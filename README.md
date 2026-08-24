@@ -72,6 +72,12 @@ Explicit model stack:
 just fh-stack .pi/fusion-harness/model-stack-trio.yaml
 ```
 
+OpenRouter stack (Fable 5 architect + Grok 4.6 Main + GLM 5.3, the latter two via OpenRouter):
+
+```bash
+just openrouter
+```
+
 Legacy two-slot mode remains compatible:
 
 ```bash
@@ -230,6 +236,7 @@ just                  # list every recipe
 just fh-stack <yaml>  # any explicit 2-5 slot stack
 just fusion           # rune (Fable 5 architect) + flux (Gemini Flash Main) + drift (DeepSeek V4 Pro)
 just fusion5          # fusion trio + fire (Kimi K3) + hawk (DeepSeek V4 Flash)
+just openrouter       # helm (Fable 5 architect) + grok (Grok 4.6 Main) + glm (GLM 5.3) — grok/glm via OpenRouter
 just fh-workhorse     # legacy two-slot pair (cheap)
 just fh-sota          # legacy two-slot pair (frontier)
 ```
