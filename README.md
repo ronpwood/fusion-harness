@@ -159,6 +159,15 @@ Agents must never overwrite each other's work.
 
 A CWD-scoped atomic writer lease prevents separate harness processes from mutating the same checkout simultaneously. Child agents run in their own process groups so Escape, timeout, or session shutdown reaches Pi plus tool/bash descendants. Tool allowlists enforce planning safety; prompt contracts also prohibit detached background jobs.
 
+### What "read-only" actually guarantees
+
+`READONLY_TOOLS` (`read,grep,find,ls`) has always meant a child cannot mutate the checkout. It does **not**, on its own, mean a child cannot be prompt-injected into reading and reproducing a secret. Four layered controls close that gap:
+
+- **Cannot leak a currently-loaded secret past redaction.** Every child's final answer is scanned for the literal value of any currently-loaded, secret-shaped environment variable (`API_KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `PRIVATE_KEY` name patterns) and any verbatim match is replaced with `[REDACTED:<VAR_NAME>]` before it's ever saved, rendered, or handed to another agent.
+- **Can only ever see its own provider's key, never the other four.** Each child spawns with a narrowed environment holding just a base allowlist (`PATH`, `HOME`, `LANG`, `LC_ALL`, `TMPDIR`, `TMP`, `TEMP`, `TERM`) plus the single provider key its own model actually needs — never the other configured providers' keys.
+- **Is asked not to reproduce credentials — advisory, not a boundary.** Every read-only prompt frames the reviewed content as untrusted and instructs the agent never to reproduce credentials, environment variable values, or dotfile/credential-path contents, regardless of what that content asks for. This raises the bar against unsophisticated injection but depends on model compliance — it is explicitly not a guarantee.
+- **Cannot open a fixed deny-list of known-sensitive paths at all, regardless of whether the secret is env-backed.** A harness-owned `pi` extension (loaded into every `READONLY_TOOLS` child) blocks `read`/`grep`/`find`/`ls` calls against paths like `.env`, `~/.ssh/`, `~/.aws/`, `*.pem`, `*.key`, and similar credential-shaped patterns *before* the tool executes — this is a real boundary, but scoped to that fixed list: any path outside it is still fully readable by design, and this is **not** a general filesystem sandbox.
+
 ## N-way debate
 
 <p align="center">

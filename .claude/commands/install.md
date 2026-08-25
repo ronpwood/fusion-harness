@@ -19,10 +19,11 @@ Install everything the 2–5 model fusion-harness needs and verify both legacy a
    - Exported shell variables override justfile dotenv values.
 4. Confirm these load paths exist:
    - `extensions/fusion-harness/fusion-harness.ts`
-   - `extensions/fusion-harness/modules/{runtime,child-runner,prompt-library,tui,cmd-readonly,cmd-redteam,cmd-fusion,cmd-build,model-stack,agent-layout,collaboration-graph,writer-lease}.ts`
+   - `extensions/fusion-harness/modules/{runtime,child-runner,prompt-library,tui,cmd-readonly,cmd-redteam,cmd-fusion,cmd-build,model-stack,agent-layout,collaboration-graph,writer-lease,secret-guard}.ts`
+   - `extensions/fusion-harness/child-extensions/{path-guard,path-guard-rules}.ts` — loaded into every `READONLY_TOOLS` child via an explicit `-e` flag (composes with the clean-room `--no-extensions`); denies `read`/`grep`/`find`/`ls` against a fixed credential-path deny-list before the tool executes.
    - `extensions/fusion-harness/prompts/{SYSTEM,USER}_PROMPT_*.md`
    - `.pi/fusion-harness/model-stack-{fusion,fusion-5,trio,openrouter}.yaml`
-5. Run `npm test` (34 deterministic tests), `git diff --check`, and `pi -e extensions/fusion-harness/fusion-harness.ts --list-models`.
+5. Run `npm test` (60+ deterministic tests), `git diff --check`, and `pi -e extensions/fusion-harness/fusion-harness.ts --list-models`.
 6. Launch one stack (startup validates registration, auth, and clean-room child visibility for every slot, then makes the primary slot the host):
    - `just fusion` — cross-provider trio (Fable architect + Gemini Main + DeepSeek)
    - `just fusion5` — 5-slot maximum (fusion trio + Kimi K3 + DeepSeek V4 Flash)

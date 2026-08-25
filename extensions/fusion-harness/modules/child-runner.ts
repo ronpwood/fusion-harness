@@ -11,9 +11,16 @@ import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
-import { briefArg, runOk, type AgentRun } from "./runtime.ts";
+import { briefArg, READONLY_TOOLS, runOk, type AgentRun } from "./runtime.ts";
+import { redactSecrets, scopedChildEnv } from "./secret-guard.ts";
 
 const KILL_GRACE_MS = 5_000; // SIGTERM → SIGKILL escalation window
+
+// This module lives in modules/; path-guard.ts lives in the extension's child-extensions/
+// sibling directory — __dirname under CJS transpilation, import.meta.url under ESM (same
+// dual-resolution pattern prompt-library.ts uses for its own prompts/ directory).
+const MODULE_DIR: string = typeof __dirname !== "undefined" && __dirname ? __dirname : path.dirname(new URL(import.meta.url).pathname);
+const PATH_GUARD_EXTENSION = path.join(MODULE_DIR, "..", "child-extensions", "path-guard.ts");
 
 /** Locate the running pi binary so we can re-invoke it as a child. */
 export function piInvocation(args: string[]): { command: string; args: string[] } {
@@ -68,6 +75,12 @@ export function runChild(opts: {
 		"--model",
 		run.model,
 	];
+	// Phase 4 path-guard: loaded via an EXPLICIT -e path, not auto-discovery, so it
+	// composes with --no-extensions above rather than being disabled by it. Scoped to
+	// READONLY_TOOLS only — a FULL_TOOLS writer (fuser, collaborate's write tasks) is
+	// already trusted with bash and the full environment by design, so denying it a
+	// legitimate .env-adjacent read would be a functional regression, not a security fix.
+	if (opts.tools === READONLY_TOOLS) args.push("-e", PATH_GUARD_EXTENSION);
 	// Session identity, in precedence order: fork the host > resume an earlier fork > pinned per-role id.
 	if (opts.fork) args.push("--fork", opts.fork);
 	else if (opts.resume) args.push("--session", opts.resume);
@@ -141,8 +154,13 @@ export function runChild(opts: {
 					if (part.type === "text" && part.text) finalizedText += part.text;
 				}
 				if (finalizedText.trim()) {
-					run.text = finalizedText;
-					run.flow.push({ type: "text", text: finalizedText });
+					// Redact BEFORE storing anywhere — run.flow feeds the live TUI and run.text
+					// feeds every save/render/handoff downstream (h.save, h.panel,
+					// debateOpinionsBlock, fuserPrompt's excerpts). One redaction here covers
+					// both rather than trusting every reader to redact its own copy.
+					const redactedText = redactSecrets(finalizedText);
+					run.text = redactedText;
+					run.flow.push({ type: "text", text: redactedText });
 				}
 				run.streamText = "";
 				run.streamThinking = "";
@@ -214,7 +232,9 @@ export function runChild(opts: {
 			detached: process.platform !== "win32", // own process group so cancellation reaches tool/bash descendants
 			stdio: ["ignore", "pipe", "pipe"],
 			// Children still make their real model API calls — this only skips startup chores.
-			env: { ...process.env, PI_OFFLINE: "1", PI_SKIP_VERSION_CHECK: "1" },
+			// Scoped, not a blanket `{ ...process.env }`: a child only ever holds its own
+			// model's provider key, never the other configured providers' keys.
+			env: scopedChildEnv(run.model, process.env),
 		});
 
 		// Line-buffer stdout: events arrive one JSON object per line, possibly split across chunks.
