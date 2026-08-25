@@ -78,3 +78,31 @@ This is the one flagged as NOT "free" the way the above two are. What it needs t
 Net: buildable, but it's the first mode that needs the harness to hold state across command
 invocations at all — every other mode (including `/fh-collaborate`'s DAG) is one-shot. That's
 a real new capability, not just a new `cmd-*.ts` file plus a registration call.
+
+## Read-only child hardening — closed, one residual item
+
+`/fh-redteam`'s self-test (see this file's own commit, `ebe75c1`) flagged that every
+`READONLY_TOOLS` child inherits the full host environment and Pi's `read`/`grep`/`find`/`ls`
+tools have zero path containment — a prompt-injected diff or prompt could get a "read-only"
+agent to open `.env` and reproduce it. Scoped into
+`specs/harden-readonly-children-secret-exfiltration.md` (2026-08-24, `draft`), built and
+shipped 2026-08-25 (`status: complete`, commits `3b98e8a` + `2747df2`): output-side secret
+redaction, per-child provider-key env scoping, untrusted-content prompt framing, and a new
+harness-owned `pi` extension (`child-extensions/path-guard.ts`) that denies
+`read`/`grep`/`find`/`ls` against a fixed credential-path deny-list before the tool executes.
+README's "What 'read-only' actually guarantees" section (under Single-writer invariant)
+documents the resulting contract precisely.
+
+**What's still open** — the plan's own Notes are explicit about this, not a gap discovered
+since: `path-guard.ts`'s deny-list is fixed and enumerable (`.env`, `~/.ssh/`, `*.pem`, etc.);
+any sensitive file whose name or path isn't on that list (a bespoke secrets file, a credential
+pasted into an otherwise-innocuous tracked file) is still fully readable by a `READONLY_TOOLS`
+child. Closing that residual gap for real needs one of:
+
+- OS-level sandboxing per child (macOS `sandbox-exec`, Linux `bwrap`/namespaces) restricted to
+  the project directory — cross-platform-sensitive, not attempted here.
+- `pi` itself growing a native allowed-paths/sandbox flag for `read`/`grep`/`find`/`ls` — not
+  this repo's code to change.
+
+Not scheduled. If picked up, start from the spec's Notes section (`Gap this plan does not
+close`) rather than re-deriving the threat model from scratch.
