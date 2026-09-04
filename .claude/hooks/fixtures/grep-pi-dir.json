@@ -1,0 +1,11 @@
+{
+  "session_id": "fixture",
+  "cwd": "/Users/ronaldwood/Dev/forks/fusion-harness",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Grep",
+  "tool_input": {
+    "pattern": "model",
+    "path": "/Users/x/.pi/agent"
+  }
+}

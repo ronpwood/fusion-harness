@@ -14,5 +14,5 @@ Orient yourself in fusion-harness: a clean-room Pi coding-agent extension that c
 4. Read `justfile` for the `fusion` trio (Fable architect + Gemini Main + DeepSeek), the 5-slot `fusion5` stack, legacy WORKHORSE/SOTA pairs, and explicit `fh-stack`.
 5. Skim `extensions/fusion-harness/prompts/{SYSTEM,USER}_PROMPT_*.md`, especially FUSION merge, debate rounds, collaboration propose/delegate/execute/coordinate, and context ACK.
 6. Read `VALIDATION.md` and run `npm test` for current evidence.
-7. Note: `prompts/duckdb/` is the simple-to-complex live validation suite; `.pi/fusion-harness/` holds the tracked stack configs; a clean demo workspace lives at `../fusion-harness-v2-playground` (own justfile, `ai_docs/` scraped docs, `.env` symlink).
+7. Note: `prompts/duckdb/`, `prompts/computer-use-skills-files-api/`, and `prompts/function-hooks/` are the simple-to-complex live validation suites (each has a README); `.pi/fusion-harness/` holds the tracked stack configs; a clean demo workspace lives at `../fusion-harness-v2-playground` (own justfile, `ai_docs/` scraped docs, `.env` symlink).
 8. Summarize your understanding: purpose, stack/config invariants, single-writer safety, dependency-driven collaboration, session scoping (per app run), module structure, key files, commands, and validation entry points.

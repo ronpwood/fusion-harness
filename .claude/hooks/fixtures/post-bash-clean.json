@@ -1,0 +1,14 @@
+{
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "echo"
+  },
+  "tool_response": {
+    "stdout": "nothing here",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  },
+  "cwd": "/Users/ronaldwood/Dev/forks/fusion-harness"
+}

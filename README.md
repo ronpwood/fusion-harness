@@ -300,7 +300,7 @@ Every run writes an inspectable `/tmp/fusion-harness-*` directory with `stack.js
 npm run test:fusion-harness     # deterministic unit/contract tests
 ```
 
-Live validation prompts are checked in under `prompts/duckdb/`, ordered simple to complex and centered on the [DuckDB v2.0 preview](https://duckdb.org/2026/08/17/duckdb-20-highlights).
+Live validation prompt suites are checked in under `prompts/<topic>/`, each ordered simple to complex with a README mapping prompts to `/fh-*` commands: `prompts/duckdb/` ([DuckDB v2.0 preview](https://duckdb.org/2026/08/17/duckdb-20-highlights)), `prompts/computer-use-skills-files-api/`, and `prompts/function-hooks/` (the Claude Code hooks reference in `ai_docs/function-hooks-20.md`).
 
 ---
 

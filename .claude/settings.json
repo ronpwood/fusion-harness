@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-secrets.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "checking credential paths"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-destructive.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "checking for destructive commands"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-writer-lease.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "checking fusion-harness writer lease"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read|Grep|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/redact-secrets.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "redacting secrets from tool output"
+          }
+        ]
+      }
+    ]
+  }
+}
