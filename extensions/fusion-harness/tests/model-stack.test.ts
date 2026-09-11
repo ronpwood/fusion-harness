@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadModelStack, orderedSlots, synthesizeLegacyStack } from "../modules/model-stack.ts";
+import { PROVIDER_ENV_VARS } from "../modules/secret-guard.ts";
 
 const dirs: string[] = [];
 afterEach(() => { while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true }); });
@@ -89,5 +90,19 @@ describe("model stack", () => {
     const stack = synthesizeLegacyStack({ architectModel: "a/model", builderModel: "b/model", architectThinking: "high", builderThinking: "medium" });
     expect(stack.slots).toHaveLength(2);
     expect(stack.primaryBuilder.model).toBe("b/model");
+  });
+});
+
+// The committed launch stacks (`just fusion`, `fusion5`, …) — edited by `just models-set`,
+// so a bad swap should fail here rather than at launch.
+describe("repo model stacks", () => {
+  const stackDir = join(import.meta.dir, "..", "..", "..", ".pi", "fusion-harness");
+  const files = readdirSync(stackDir).filter((f) => /^model-stack-.+\.ya?ml$/.test(f));
+
+  test("at least one stack exists", () => expect(files.length).toBeGreaterThan(0));
+
+  test.each(files)("%s loads, and every slot uses a harness-supported provider", (file) => {
+    const stack = loadModelStack(join(stackDir, file));
+    for (const slot of stack.slots) expect(Object.keys(PROVIDER_ENV_VARS)).toContain(slot.model.split("/")[0]);
   });
 });

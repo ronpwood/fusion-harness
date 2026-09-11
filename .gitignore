@@ -35,6 +35,9 @@ venv/
 # machine-local cost/usage data, not something to commit.
 /.fh-history/
 
+# Model catalog snapshot for `just models` (new-model / price-change diffs) — machine-local.
+/.fh-models/
+
 # Local parking lot for unused assets and scratch files — never committed.
 /tmp/
 

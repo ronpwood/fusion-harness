@@ -31,15 +31,15 @@ fh-stack CONFIG *ARGS:
     pi -e extensions/fusion-harness/fusion-harness.ts \
         --fh-config {{CONFIG}} {{ARGS}}
 
-# THE fusion stack: rune=Fable 5 architect · flux=Gemini 3.7 Flash Main · drift=DeepSeek V4 Pro
+# THE fusion stack: rune=Fable 5.1 architect · flux=Gemini 3.8 Flash Main · drift=DeepSeek V4 Pro
 fusion *ARGS:
     just fh-stack .pi/fusion-harness/model-stack-fusion.yaml {{ARGS}}
 
-# 5-slot fusion stack: fusion trio + fire=Kimi K3 + hawk=DeepSeek V4 Flash (both Fireworks)
+# 5-slot fusion stack: fusion trio + fire=Kimi K3 + hawk=DeepSeek V4.1 Flash (both Fireworks)
 fusion5 *ARGS:
     just fh-stack .pi/fusion-harness/model-stack-fusion-5.yaml {{ARGS}}
 
-# OpenRouter stack: helm=Fable 5 architect (native) + grok=Grok 4.6 Main + glm=GLM 5.3 (both via OpenRouter)
+# OpenRouter stack: helm=Fable 5.1 architect (native) + grok=Grok 4.6 Main + glm=GLM 5.3 (both via OpenRouter)
 openrouter *ARGS:
     just fh-stack .pi/fusion-harness/model-stack-openrouter.yaml {{ARGS}}
 
@@ -47,3 +47,16 @@ openrouter *ARGS:
 # Flags: --all, --limit N, --command <name>, --verbose (tokens/tps/model), --prune-older-than DAYS.
 fh-history *ARGS:
     node extensions/fusion-harness/scripts/fh-history.js {{ARGS}}
+
+# Pre-launch model check — every stack slot vs pi's catalog: missing, upgrades, price changes, new models.
+# Flags: --refresh (pi update --models first), --json, --stack <name>. See the /model-updates skill.
+# positional-arguments: args reach node as "$@", never re-parsed by the shell (no {{ }} injection).
+[positional-arguments]
+models *ARGS:
+    node extensions/fusion-harness/scripts/fh-models.js "$@"
+
+# Swap one slot's model; STACK is the name after `model-stack-` in the filename, e.g.
+# `just models-set fusion-5 hawk fireworks/accounts/fireworks/models/deepseek-v4p1-flash`.
+[positional-arguments]
+models-set STACK SLOT MODEL:
+    node extensions/fusion-harness/scripts/fh-models.js set "$1" "$2" "$3"

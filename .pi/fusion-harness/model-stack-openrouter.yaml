@@ -3,7 +3,7 @@
 # helm: Fable 5 architect (native Anthropic) · grok: Grok 4.6 primary/Main (OpenRouter) · glm: GLM 5.3 (OpenRouter)
 # Every slot appends the shared communication contract (path relative to this YAML).
 - name: helm
-  model: anthropic/claude-fable-5
+  model: anthropic/claude-fable-5-1
   thinking: medium
   architect: true
   color: "#A78BFA"

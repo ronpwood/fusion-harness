@@ -60,7 +60,7 @@ Model rankings flip every month. Betting a workflow on ONE frontier model means 
 
 ## Launch
 
-The fusion stack (Fable 5 architect + Gemini 3.7 Flash Main + DeepSeek V4 Pro):
+The fusion stack (Fable 5.1 architect + Gemini 3.8 Flash Main + DeepSeek V4 Pro):
 
 ```bash
 just fusion
@@ -72,7 +72,7 @@ Explicit model stack:
 just fh-stack .pi/fusion-harness/model-stack-trio.yaml
 ```
 
-OpenRouter stack (Fable 5 architect + Grok 4.6 Main + GLM 5.3, the latter two via OpenRouter):
+OpenRouter stack (Fable 5.1 architect + Grok 4.6 Main + GLM 5.3, the latter two via OpenRouter):
 
 ```bash
 just openrouter
@@ -92,7 +92,7 @@ The extension selects the configured primary builder as Pi's live host model. In
 
 ```yaml
 - name: fable
-  model: anthropic/claude-fable-5
+  model: anthropic/claude-fable-5-1
   thinking: xhigh
   architect: true
   color: "#A78BFA"
@@ -244,12 +244,22 @@ After the sole-writer FUSION agent finishes:
 ```bash
 just                  # list every recipe
 just fh-stack <yaml>  # any explicit 2-5 slot stack
-just fusion           # rune (Fable 5 architect) + flux (Gemini Flash Main) + drift (DeepSeek V4 Pro)
-just fusion5          # fusion trio + fire (Kimi K3) + hawk (DeepSeek V4 Flash)
-just openrouter       # helm (Fable 5 architect) + grok (Grok 4.6 Main) + glm (GLM 5.3) — grok/glm via OpenRouter
+just fusion           # rune (Fable 5.1 architect) + flux (Gemini Flash Main) + drift (DeepSeek V4 Pro)
+just fusion5          # fusion trio + fire (Kimi K3) + hawk (DeepSeek V4.1 Flash)
+just openrouter       # helm (Fable 5.1 architect) + grok (Grok 4.6 Main) + glm (GLM 5.3) — grok/glm via OpenRouter
 just fh-workhorse     # legacy two-slot pair (cheap)
 just fh-sota          # legacy two-slot pair (frontier)
 ```
+
+### Keeping models current
+
+```bash
+just models                    # every stack slot vs pi's catalog: MISSING, UPGRADE, price changes, new models since last check
+just models --refresh          # run `pi update --models` first; --json for scripts, --stack <name> for one stack
+just models-set fusion-5 hawk fireworks/accounts/fireworks/models/deepseek-v4p1-flash   # swap one slot in place
+```
+
+`just models` reads pi's public model catalog (`pi.dev/api/models/providers/<provider>`, the feed pi itself uses), flags same-family newer versions with price/context deltas, checks each slot is visible to a clean-room child (same scoped env the harness uses), and reports the installed vs latest pi version. Requires Node ≥ 22.18 — the script imports the harness's `.ts` modules via native type stripping. The snapshot for "new since last check" lives in `.fh-models/` (gitignored). `models-set` only accepts IDs present in the catalog, edits just the `model:` value (comments and formatting untouched), and re-validates the stack. In Claude Code, the `/model-updates` skill runs the check, researches candidates, recommends swaps per slot role, and applies the ones you approve.
 
 Stack YAMLs live in `.pi/fusion-harness/` (and `~/.pi/fusion-harness/` for launching from anywhere). A clean demo workspace with the same recipes, scraped DuckDB v2.0 docs in `ai_docs/`, and self-contained demo prompts lives at [`../fusion-harness-v2-playground`](../fusion-harness-v2-playground).
 
@@ -270,6 +280,7 @@ extensions/fusion-harness/
 │   ├── cmd-fusion.ts          # /fh-fusion
 │   ├── cmd-build.ts           # /fh-collaborate + /fh-auto-validate (writer-lease holders)
 │   ├── model-stack.ts         # YAML parsing, validation, colors, legacy synthesis
+│   ├── model-updates.ts       # model-ID family/version parsing, upgrade detection, catalog diffs (`just models`)
 │   ├── agent-layout.ts        # responsive 1-5 agent layout math
 │   ├── collaboration-graph.ts # DAG validation, cycle detection, dependency levels
 │   └── writer-lease.ts        # atomic canonical-CWD writer exclusion
@@ -287,6 +298,7 @@ extensions/fusion-harness/
 - `modules/cmd-fusion.ts` — `/fh-fusion`.
 - `modules/cmd-build.ts` — `/fh-collaborate` and `/fh-auto-validate` (the writer-lease holders).
 - `modules/model-stack.ts` — real YAML parsing, validation, colors, and legacy synthesis.
+- `modules/model-updates.ts` — pure logic behind `just models`: parses model IDs into family + version (Fireworks `p` decimals, Anthropic dash versions, dated snapshots), finds same-family upgrades, diffs catalog snapshots. `scripts/fh-models.js` does the fetching and printing.
 - `modules/agent-layout.ts` — responsive 1–5 agent layout calculations.
 - `modules/collaboration-graph.ts` — DAG validation, cycle detection, and dependency levels.
 - `modules/writer-lease.ts` — atomic canonical-CWD writer exclusion.
